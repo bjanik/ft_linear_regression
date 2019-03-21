@@ -36,8 +36,8 @@ def plot_regression(mileage, price, theta):
 	axes = plt.gca()
 	axes.set_xlim(0, 250000)
 	axes.set_ylim(0, 10000)
-	plt.xlabel("mileage")
-	plt.ylabel("price")
+	plt.xlabel("Mileage")
+	plt.ylabel("Price")
 	plt.gcf().canvas.set_window_title("Car price function of mileage")
 	plt.scatter(mileage, price, c='r', marker='x')
 	plt.plot(mileage, predict_price(mileage, theta), c='b')
@@ -52,6 +52,8 @@ def main():
 		price = np.array(data['price']) / COEF
 	except KeyError:
 		output_error_exit("Keys should be named 'mileage' and 'price'")
+	except TypeError:
+		output_error_exit("Data in file is not only numeric")
 	theta = np.zeros(2)
 	theta = fit(mileage, price, theta, data_len, 0.01, 5000)
 	print("Theta0 is {}\nTheta1 is {}".format(theta[0], theta[1]))
@@ -62,4 +64,3 @@ if __name__ == "__main__":
 		main()
 	except KeyboardInterrupt:
 		sys.exit(130)
-
