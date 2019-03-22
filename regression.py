@@ -7,8 +7,6 @@ import time
 
 from utils import *
 
-COEF = 10000
-
 def get_data(argv):
 	try:
 		data = pandas.read_csv(sys.argv[1])
@@ -27,9 +25,6 @@ def fit(mileage, price, theta, m, alpha, num_iters):
 		sigma1 = sum((predict_price(mileage, theta) - price) * mileage)
 		theta[0] = theta[0] - alpha * sigma0 / m
 		theta[1] = theta[1] - alpha * sigma1 / m
-	theta[0] *= COEF
-	mileage *= COEF
-	price *= COEF
 	return theta
 
 def plot_regression(mileage, price, theta):
@@ -43,19 +38,31 @@ def plot_regression(mileage, price, theta):
 	plt.plot(mileage, predict_price(mileage, theta), c='b')
 	plt.show()
 
+def retrieve_theta(theta, mileage):
+	min_mileage = min(mileage)
+	max_mileage = max(mileage)
+	tmp_theta0 = theta[0]
+	tmp_theta1 = theta[1]
+	theta[0] = tmp_theta0 + theta[1] * ((min_mileage * -1) / (max_mileage - min_mileage))
+	theta[1] = tmp_theta0 + tmp_theta1 * (1 - min_mileage) / (max_mileage - min_mileage) - theta[0]
+
 def main():
 	if len(sys.argv) < 2:
 		output_error_exit("Missing input file")
 	data, data_len = get_data(sys.argv)
+	# data = data[~np.isnan(data.any(axis=))]
+	print(data)
 	try:
-		mileage = np.array(data['mileage']) / COEF
-		price = np.array(data['price']) / COEF
+		mileage = np.array(data['mileage'])
+		price = np.array(data['price'])
 	except KeyError:
 		output_error_exit("Keys should be named 'mileage' and 'price'")
 	except TypeError:
 		output_error_exit("Data in file is not only numeric")
+	scaled_mileage = (mileage - min(mileage)) / (max(mileage) - min(mileage))
 	theta = np.zeros(2)
-	theta = fit(mileage, price, theta, data_len, 0.01, 5000)
+	theta = fit(scaled_mileage, price, theta, data_len, 1, 250)
+	retrieve_theta(theta, mileage)
 	print("Theta0 is {}\nTheta1 is {}".format(theta[0], theta[1]))
 	plot_regression(mileage, price, theta)
 
