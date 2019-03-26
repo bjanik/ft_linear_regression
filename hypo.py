@@ -13,6 +13,10 @@ def main():
 		mileage = float(input("Please enter a mileage: "))
 	except ValueError:
 		output_error_exit("Inputs must be an int or a float")
+	except KeyboardInterrupt:
+		sys.exit(130)
+	except EOFError:
+		sys.exit(0)
 	if mileage < 0:
 		output_error_exit("Sorry, mileage cannot be negative")
 	price = predict_price(mileage, theta)
@@ -21,7 +25,4 @@ def main():
 	print("Estimated car price is {} $".format(round(price)))
 
 if __name__ == '__main__':
-	try:
-		main()
-	except (EOFError, KeyboardInterrupt):
-		sys.exit(130)
+	main()

@@ -14,6 +14,8 @@ def get_data(argv):
 		output_error_exit("{}: No such file or directory".format(sys.argv[1]))
 	except (pandas.errors.EmptyDataError, pandas.errors.ParserError, UnicodeDecodeError):
 		output_error_exit("{}: File is not csv type".format(sys.argv[1]))
+	except OSError:
+		output_error_exit("Initializing from file failed")
 	data_len = len(data)
 	if data_len == 0:
 		output_error_exit("File provides no information")
@@ -50,21 +52,24 @@ def main():
 	if len(sys.argv) < 2:
 		output_error_exit("Missing input file")
 	data, data_len = get_data(sys.argv)
-	# data = data[~np.isnan(data.any(axis=))]
-	print(data)
 	try:
 		mileage = np.array(data['mileage'])
 		price = np.array(data['price'])
+		scaled_mileage = (mileage - min(mileage)) / (max(mileage) - min(mileage))
 	except KeyError:
 		output_error_exit("Keys should be named 'mileage' and 'price'")
 	except TypeError:
 		output_error_exit("Data in file is not only numeric")
-	scaled_mileage = (mileage - min(mileage)) / (max(mileage) - min(mileage))
+	if np.isnan(mileage).any() or np.isnan(price).any():
+		output_error_exit("Incomplete information")
 	theta = np.zeros(2)
 	theta = fit(scaled_mileage, price, theta, data_len, 1, 250)
 	retrieve_theta(theta, mileage)
 	print("Theta0 is {}\nTheta1 is {}".format(theta[0], theta[1]))
-	plot_regression(mileage, price, theta)
+	try:
+		plot_regression(mileage, price, theta)
+	except KeyboardInterrupt:
+		sys.exit(1)
 
 if __name__ == "__main__":
 	try:
